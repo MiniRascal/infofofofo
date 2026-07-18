@@ -16,6 +16,7 @@
          at plugin-load time even if they are - this is what "Failed to locate
          managed application" / dependency resolution errors mean. -->
     <GenerateDependencyFile>true</GenerateDependencyFile>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
