@@ -48,6 +48,7 @@ public class PeripheralBatteryPlugin : BasePlugin, IPluginConfigurable
         : base("peripheral-battery", "Peripheral Battery Monitor",
                "Battery and charging status for DeathAdder V4 Pro, Blackshark V3 and Gamakay TK75HE V2") { }
 
+    [Obsolete]
     public override string? ConfigFilePath => null;
     public override TimeSpan UpdateInterval => TimeSpan.FromSeconds(_pollSeconds);
 
