@@ -32,12 +32,26 @@ described for Gamakay below and comparing against what the code tries.
 
 ## Building
 
-**Important - avoiding a version mismatch:** InfoPanel loads plugins via
-reflection, and it needs the *exact* `InfoPanel.Plugins.dll` your installed
-app ships with - not a freshly built one from GitHub source, even from the
-same repo. Building against the wrong copy causes a
-`Can't find any type which implements ICommand` error at load time, even
-though the plugin code itself is fine.
+**Important - avoiding a plugin load-context type-identity bug:** InfoPanel
+(1.4.0-preview builds) loads each plugin into an isolated
+`AssemblyLoadContext` and then checks whether your plugin class implements
+`IPlugin` via reflection. That check only shares a handful of specific
+assemblies between the host and the plugin's isolated context -
+`InfoPanel.Plugins` itself is *not* one of them. If the plugin's own output
+folder ships a copy of `InfoPanel.Plugins.dll`, the isolated loader picks up
+that copy instead of the host's, producing a second `IPlugin` type that's
+byte-identical but not reference-equal to the host's - reflection's
+`IsAssignableFrom` fails silently, and the plugin throws an error claiming it
+can't find any type implementing `ICommand` (a red herring - the actual
+check, and a leftover error string, is for `IPlugin`; found by reading
+InfoPanel's actual loader source in the `emaspa/InfoPanel-linux` fork, which
+tracks the same plugin architecture).
+
+The fix is already in this project's `.csproj`: the reference to
+`InfoPanel.Plugins.dll` is marked `Private=false`, so it's used only to
+satisfy the compiler and is *not* copied into the plugin's own output folder.
+At runtime, resolution falls through to the host's already-loaded copy, and
+the types match correctly.
 
 1. On your PC, find your InfoPanel install folder (shown in InfoPanel's own
    logs as "Content root path" - commonly `C:\Program Files (x86)\InfoPanel`).
