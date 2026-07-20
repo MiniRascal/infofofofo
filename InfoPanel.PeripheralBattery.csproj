@@ -42,16 +42,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Referencing the InfoPanel source repo caused a version mismatch (the
-         plugin failed to load with "Can't find any type which implements
-         ICommand" because reflection needs the EXACT DLL the running
-         InfoPanel app ships, not a freshly-built lookalike). Instead we
-         reference the actual installed DLL, checked into this repo under
-         lib/ so the build always matches whatever InfoPanel version you're
-         actually running. See README for how to grab this file. -->
+    <!-- CRITICAL: Private MUST be false here. InfoPanel's plugin host loads each
+         plugin into an isolated AssemblyLoadContext (see PluginLoadContext.cs in
+         InfoPanel's source) that only shares a couple of specific assemblies with
+         the host process - InfoPanel.Plugins is NOT one of them. If we ship our
+         own copy of InfoPanel.Plugins.dll in this plugin's output folder (Private=
+         true / "Copy Local"), the isolated loader picks up OUR copy instead of the
+         host's, creating a second IPlugin type that's byte-identical but not
+         reference-equal to the host's. Reflection's IsAssignableFrom checks type
+         identity, so the plugin silently fails to load with a misleading error
+         about "ICommand" (a leftover string from a tutorial template - the actual
+         check is for IPlugin). Private=false means this DLL is used only to
+         satisfy the compiler; at runtime resolution falls through to the host's
+         already-loaded copy, and the types match correctly. -->
     <Reference Include="InfoPanel.Plugins">
       <HintPath>lib\InfoPanel.Plugins.dll</HintPath>
-      <Private>true</Private>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 
